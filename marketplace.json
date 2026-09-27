@@ -26,6 +26,19 @@
       "description_i18n": {
         "zh-CN": "搜索/查阅任意游戏创意工坊 + 下载 mod 并做 RimWorld 深度代码分析（依赖、MayRequire 联动点、Harmony 补丁目标、补丁操作），服务 mod 兼容适配开发"
       }
+    },
+    {
+      "name": "desktop-bridge",
+      "source": "./desktop-bridge",
+      "version": "0.1.0",
+      "description": "Desktop bridge for ZCode via MCP: read/write the Windows clipboard, show toast notifications, open files/folders/URLs with executable guardrails, and query system info. Zero dependencies, native PowerShell.",
+      "displayName": "Desktop Bridge",
+      "displayName_i18n": {
+        "zh-CN": "桌面桥"
+      },
+      "description_i18n": {
+        "zh-CN": "让 ZCode 触达 Windows 桌面：读写剪贴板、系统弹窗通知、安全打开文件/文件夹/网页、查系统信息；零依赖原生实现"
+      }
     }
   ]
 }

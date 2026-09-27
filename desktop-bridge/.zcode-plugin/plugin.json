@@ -1,0 +1,8 @@
+{
+  "name": "desktop-bridge",
+  "version": "0.1.0",
+  "description": "Desktop bridge for ZCode via MCP: read/write the Windows clipboard, show toast notifications, open files/folders/URLs with executable guardrails, and query system info. Zero dependencies, native PowerShell.",
+  "author": { "name": "Administrator" },
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json"
+}

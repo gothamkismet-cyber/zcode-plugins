@@ -26,6 +26,17 @@
 
 详见 [plugins/steam-workshop/README.md](plugins/steam-workshop/README.md)
 
+### 桌面桥（desktop-bridge）v0.1.0
+
+让 ZCode 够得着 Windows 桌面，5 个零依赖 MCP 工具：
+
+- `clipboard_read` / `clipboard_write`：剪贴板读写——你说"看我复制的内容"，模型直接读
+- `notify`：Windows 系统通知弹窗（长任务收尾提醒）
+- `open_path`：打开网页/文件夹/文件（护栏：拒绝可执行扩展名和非 http/https 协议）
+- `sys_info`：系统信息（系统版本/内存/CPU/磁盘剩余空间）
+
+详见 [plugins/desktop-bridge/README.md](plugins/desktop-bridge/README.md)
+
 ## 安装方法
 
 ### 方法一：把本仓库添加为插件市场（推荐）
@@ -33,7 +44,7 @@
 1. 打开 ZCode 的 **插件市场** 页面
 2. 点 **添加 → 添加插件市场**
 3. 输入 `gothamkismet-cyber/zcode-plugins`（或完整地址 `https://github.com/gothamkismet-cyber/zcode-plugins`）
-4. 进 **个人** 页找到两个插件，逐个点 **安装**
+4. 进 **个人** 页找到三个插件，逐个点 **安装**
 5. 会话记忆装完即生效（新会话开始加载）；Steam 创意工坊装完建议重启 ZCode 让 MCP 服务器完成连接
 
 ### 方法二：本地目录市场（离线/开发）
