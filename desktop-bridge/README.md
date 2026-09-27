@@ -25,9 +25,12 @@
 
 ## 平台
 
-仅 Windows（PowerShell 5.1 系统自带；toast 需 Windows 10/11）。Node ≥ 18（建议 24）。
+- **Windows**：PowerShell 5.1（系统自带）+ WinRT toast——全链路实机验证。
+- **macOS**：pbcopy/pbpaste（剪贴板）、osascript（通知）、open（打开）——代码就绪，未实机测试。
+- **Linux**：剪贴板按 WAYLAND_DISPLAY 自动选 wl-clipboard / xclip / xsel；通知需 libnotify（notify-send）；打开走 xdg-open——代码就绪，未实机测试；依赖缺失时报错并提示装什么。
+- 通用依赖：Node ≥ 18（建议 24）。
 
-## 验证状态（2026-09-27，本机实测）
+## 验证状态（2026-09-27）
 
-- MCP 全链路 + 5 工具：剪贴板中英文往返、通知 API 调用成功、临时文件夹打开、sys_info JSON 解析、护栏拒绝路径（exe/file:// 协议）全部通过。
-- **未验证**：toast 实际弹窗的视觉效果（API 成功 ≠ 一定可见，专注助手会折叠）；`notify` 在锁屏/全屏场景的表现。
+- Windows 实机：MCP 全链路 + 5 工具通过（剪贴板中英文往返、通知 API、文件夹打开、sys_info、护栏拒绝路径）。
+- macOS/Linux：适配分支代码实现并通过 Windows 侧回归测试，**未实机测试**（开发机 Windows）；首次使用如报缺工具，按错误提示安装对应包即可。

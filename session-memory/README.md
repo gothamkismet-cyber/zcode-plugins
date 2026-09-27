@@ -9,16 +9,17 @@
 
 ## 工作方式
 
-- `hooks/load-memory.ps1`：SessionStart 钩子（process 型，无 shell，10 秒超时），读取上面两个文件（UTF-8），单文件超过 8000 字符截断，输出 `{"additionalContext": ...}` 注入对话。
+- `hooks/load-memory.mjs`：SessionStart 钩子（process 型，10 秒超时），读取上面两个文件（UTF-8），单文件超过 8000 字符截断，输出 `{"additionalContext": ...}` 注入对话。
 - 两个记忆文件都不存在时零输出、零上下文占用。
 - 匹配所有 SessionStart 来源：startup / resume / clear / compact。
-- 钩子脚本刻意写成纯 ASCII 并把内容转义为 `\uXXXX` 输出，规避 Windows PowerShell 5.1 的 ANSI 代码页乱码问题。
+- 钩子是 Node 脚本，全平台一致：JSON 转义由 JSON.stringify 原生处理，无代码页/编码问题。
 
-## 平台限制
+## 平台
 
-- 本版本钩子加载器用 Windows PowerShell 5.1（`powershell.exe`），仅支持 Windows。macOS/Linux 需另补一个 bash 版加载器。
+- Windows / macOS / Linux 通用，唯一依赖是 `node` 在 PATH（本插件套件的 MCP 服务器同样依赖它）。
 
 ## 验证状态
 
 - 记忆文件请用 UTF-8 保存（ZCode 自带文件工具默认 UTF-8）。
+- Windows 实机验证：多场景断言通过（无记忆零输出、中文往返、截断、双文件加载）。
 - 实机验证方法：安装插件后新开会话，上下文开头应出现 `[session-memory]` 段落（需至少一个记忆文件存在）。

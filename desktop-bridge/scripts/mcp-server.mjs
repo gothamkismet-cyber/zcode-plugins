@@ -7,7 +7,8 @@
 
 import { spawnSync } from "node:child_process";
 import { createInterface } from "node:readline";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, join, extname, isAbsolute, resolve } from "node:path";
 
@@ -42,6 +43,112 @@ function psFailure(r, label) {
   return `desktop-bridge 出错（${label}）：${reason}`;
 }
 
+// --- macOS / Linux implementations (spawn native commands directly) ---
+
+const IS_WIN = process.platform === "win32";
+const IS_MAC = process.platform === "darwin";
+
+function runCmd(cmd, args, input = null, timeoutMs = 10000) {
+  const r = spawnSync(cmd, args, { input: input === null ? undefined : input, timeout: timeoutMs, encoding: "utf8", windowsHide: true });
+  return {
+    status: r.status,
+    stdout: (r.stdout || "").trim(),
+    stderr: (r.stderr || "").trim(),
+    error: r.error,
+    missing: Boolean(r.error && r.error.code === "ENOENT"),
+  };
+}
+
+function unixClipboardRead() {
+  if (IS_MAC) {
+    const r = runCmd("pbpaste", [], null, 5000);
+    return r.status === 0 ? r.stdout : null;
+  }
+  const candidates = process.env.WAYLAND_DISPLAY
+    ? [["wl-paste", []], ["xclip", ["-selection", "clipboard", "-o"]], ["xsel", ["--clipboard", "--output"]]]
+    : [["xclip", ["-selection", "clipboard", "-o"]], ["xsel", ["--clipboard", "--output"]], ["wl-paste", []]];
+  for (const [cmd, args] of candidates) {
+    const r = runCmd(cmd, args, null, 5000);
+    if (r.status === 0 && !r.missing) return r.stdout;
+  }
+  return null;
+}
+
+function unixClipboardWrite(text) {
+  if (IS_MAC) {
+    const r = runCmd("pbcopy", [], text, 5000);
+    return r.status === 0 ? { ok: true } : { error: r.error?.message || r.stderr || `exit=${r.status}` };
+  }
+  const candidates = process.env.WAYLAND_DISPLAY
+    ? [["wl-copy", []], ["xclip", ["-selection", "clipboard"]], ["xsel", ["--clipboard", "--input"]]]
+    : [["xclip", ["-selection", "clipboard"]], ["xsel", ["--clipboard", "--input"]], ["wl-copy", []]];
+  for (const [cmd, args] of candidates) {
+    const r = runCmd(cmd, args, text, 5000);
+    if (r.status === 0 && !r.missing) return { ok: true };
+  }
+  return { error: `没有可用的剪贴板工具（尝试过 ${candidates.map(([c]) => c).join(" / ")}）。Linux 需要安装 xclip / xsel（X11）或 wl-clipboard（Wayland）。` };
+}
+
+function unixNotify(title, message) {
+  if (IS_MAC) {
+    // JSON.stringify yields a valid escaped AppleScript double-quoted string.
+    const esc = (s) => JSON.stringify(s);
+    return runCmd("osascript", ["-e", `display notification ${esc(message)} with title ${esc(title)}`], null, 10000);
+  }
+  return runCmd("notify-send", [title, message], null, 10000);
+}
+
+function openTarget(target) {
+  return IS_WIN ? runPs("open.ps1", ["-Target", target], null, 15000) : runCmd(IS_MAC ? "open" : "xdg-open", [target], null, 15000);
+}
+
+function unixSysInfo() {
+  const kToGb = (k) => Math.round(((Number(k) * 1024) / 1073741824) * 10) / 10;
+  const disks = [];
+  const df = runCmd("df", ["-k"], null, 8000);
+  if (df.status === 0) {
+    for (const line of df.stdout.split("\n").slice(1)) {
+      const cols = line.trim().split(/\s+/);
+      if (cols.length < 6) continue;
+      const [fsName, totalK, , availK, , mount] = cols;
+      if (!mount || !mount.startsWith("/")) continue;
+      if (/^(tmpfs|devtmpfs|udev|overlay|squashfs|efivarfs|shm)/.test(fsName) || fsName.startsWith("/dev/loop")) continue;
+      if (IS_MAC && mount !== "/" && !mount.startsWith("/System/Volumes") && !mount.startsWith("/Volumes")) continue;
+      disks.push({ mount, total_gb: kToGb(totalK), free_gb: kToGb(availK) });
+    }
+  }
+  let osName = process.platform;
+  let osVersion = os.release();
+  if (IS_MAC) {
+    const sw = runCmd("sw_vers", ["-productVersion"], null, 5000);
+    if (sw.status === 0) {
+      osName = "macOS";
+      osVersion = sw.stdout;
+    }
+  } else {
+    try {
+      const pretty = readFileSync("/etc/os-release", "utf8").match(/^PRETTY_NAME="?([^"\n]+)"?/m);
+      if (pretty) {
+        osName = "Linux";
+        osVersion = pretty[1];
+      }
+    } catch {
+      // no os-release: keep uname-based fallback
+    }
+  }
+  return {
+    host: os.hostname(),
+    user: os.userInfo().username,
+    os: osName,
+    os_version: osVersion,
+    cpu_arch: process.arch,
+    ram_total_gb: Math.round((os.totalmem() / 1073741824) * 10) / 10,
+    ram_free_gb: Math.round((os.freemem() / 1073741824) * 10) / 10,
+    uptime_hours: Math.round((os.uptime() / 3600) * 10) / 10,
+    disks,
+  };
+}
+
 function clipText(args) {
   const t = args.text ?? args.content;
   if (typeof t !== "string") return null;
@@ -49,6 +156,13 @@ function clipText(args) {
 }
 
 async function doClipboardRead() {
+  if (!IS_WIN) {
+    const text = unixClipboardRead();
+    if (text === null) {
+      return "desktop-bridge 出错（读取剪贴板）：没有可用的剪贴板工具。Linux 需要安装 xclip / xsel（X11）或 wl-clipboard（Wayland）。";
+    }
+    return JSON.stringify({ text, length: text.length, empty: text.length === 0 });
+  }
   const r = runPs("clipboard-read.ps1", [], null, 10000);
   if (r.status !== 0) return psFailure(r, "读取剪贴板");
   return JSON.stringify({ text: r.stdout, length: r.stdout.length, empty: r.stdout.length === 0 });
@@ -57,6 +171,11 @@ async function doClipboardRead() {
 async function doClipboardWrite(args) {
   const text = clipText(args);
   if (text === null) throw new Error("text 必填（字符串）。");
+  if (!IS_WIN) {
+    const r = unixClipboardWrite(text);
+    if (r.error) return `desktop-bridge 出错（写入剪贴板）：${r.error}`;
+    return JSON.stringify({ ok: true, length: text.length });
+  }
   const r = runPs("clipboard-write.ps1", [], text, 10000);
   if (r.status !== 0) return psFailure(r, "写入剪贴板");
   return JSON.stringify({ ok: true, length: text.length });
@@ -66,6 +185,14 @@ async function doNotify(args) {
   const message = String(args.message ?? "").trim();
   const title = (String(args.title ?? "ZCode").trim() || "ZCode").slice(0, 64);
   if (!message) return "message 必填（通知正文）。";
+  if (!IS_WIN) {
+    const r = unixNotify(title, message.slice(0, 300));
+    if (r.status !== 0) {
+      const hint = r.missing ? "（macOS 用内置 osascript；Linux 需安装 libnotify 提供 notify-send）" : "";
+      return `desktop-bridge 出错（系统通知）：${r.error?.message || r.stderr || `exit=${r.status}`}${hint}`;
+    }
+    return JSON.stringify({ ok: true, note: "通知命令执行成功；若系统开了勿扰/专注模式，弹窗可能被折叠。" });
+  }
   const r = runPs("notify.ps1", ["-Title", title, "-Message", message.slice(0, 300)], null, 15000);
   if (r.status !== 0) return psFailure(r, "系统通知");
   return JSON.stringify({ ok: true, note: "通知 API 调用成功；若系统开了专注助手/勿扰，弹窗可能被折叠。" });
@@ -75,7 +202,7 @@ async function doOpenPath(args) {
   const target = String(args.target ?? "").trim();
   if (!target) throw new Error("target 必填（URL、文件夹或文件路径）。");
   if (/^https?:\/\//i.test(target)) {
-    const r = runPs("open.ps1", ["-Target", target], null, 15000);
+    const r = openTarget(target);
     if (r.status !== 0) return psFailure(r, "打开 URL");
     return JSON.stringify({ ok: true, opened: target, kind: "url" });
   }
@@ -96,12 +223,13 @@ async function doOpenPath(args) {
       throw new Error(`已拒绝：${ext} 是可执行类扩展名，打开它等于运行程序。如需要，请打开所在文件夹让你自己手动操作。`);
     }
   }
-  const r = runPs("open.ps1", ["-Target", p], null, 15000);
+  const r = openTarget(p);
   if (r.status !== 0) return psFailure(r, "打开路径");
   return JSON.stringify({ ok: true, opened: p, kind: st.isDirectory() ? "folder" : "file" });
 }
 
 async function doSysInfo() {
+  if (!IS_WIN) return JSON.stringify(unixSysInfo());
   const r = runPs("sysinfo.ps1", [], null, 20000);
   if (r.status !== 0) return psFailure(r, "系统信息");
   try {

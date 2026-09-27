@@ -5,7 +5,7 @@ description: Windows desktop access via MCP tools. Use when the user says 看我
 
 # 桌面桥（desktop-bridge）
 
-通过 MCP 给 ZCode 五个触达 Windows 桌面的工具：`clipboard_read`、`clipboard_write`、`notify`、`open_path`、`sys_info`。全部零依赖、走系统原生能力。
+通过 MCP 给 ZCode 五个触达桌面的工具：`clipboard_read`、`clipboard_write`、`notify`、`open_path`、`sys_info`。Windows 全功能；macOS/Linux 用系统原生命令（pbcopy/osascript/notify-send/xdg-open 等），依赖缺失时按报错提示安装。
 
 ## 什么时候用
 

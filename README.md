@@ -4,7 +4,7 @@
 
 ## 插件一览
 
-### 会话记忆（session-memory）v0.1.0
+### 会话记忆（session-memory）v0.2.0
 
 给 ZCode 补上跨会话记忆——每个新会话默认是失忆的，本插件让长期有效的要点跨会话存活：
 
@@ -14,7 +14,7 @@
 
 详见 [plugins/session-memory/README.md](plugins/session-memory/README.md)
 
-### Steam 创意工坊（steam-workshop）v0.2.1
+### Steam 创意工坊（steam-workshop）v0.3.0
 
 通过 MCP 给 ZCode 加 7 个工具，覆盖"查、取、析"三件事：
 
@@ -26,9 +26,9 @@
 
 详见 [plugins/steam-workshop/README.md](plugins/steam-workshop/README.md)
 
-### 桌面桥（desktop-bridge）v0.1.0
+### 桌面桥（desktop-bridge）v0.2.0
 
-让 ZCode 够得着 Windows 桌面，5 个零依赖 MCP 工具：
+让 ZCode 够得着桌面（Windows / macOS / Linux），5 个零依赖 MCP 工具：
 
 - `clipboard_read` / `clipboard_write`：剪贴板读写——你说"看我复制的内容"，模型直接读
 - `notify`：Windows 系统通知弹窗（长任务收尾提醒）
@@ -54,8 +54,9 @@
 ## 使用前提
 
 - ZCode 桌面版（带插件市场功能）
-- Steam 创意工坊插件需要 Node.js ≥ 24（命令行 `node --version` 可查）；只影响它，会话记忆无此依赖
-- 想用 mod 下载功能时才需要安装 steamcmd（免费官方工具，见 steam-workshop 的 README）；只搜索、看详情、分析本机已有 mod 不需要
+- 三个插件都依赖 `node` 在 PATH（Node ≥ 18，建议 24；命令行 `node --version` 可查）
+- 桌面桥在 Linux 需要剪贴板/通知工具（xclip 或 wl-clipboard、libnotify），缺失时报错提示安装；macOS 开箱即用
+- 想用 steam-workshop 的 mod 下载功能时才需要安装 steamcmd（各平台安装见其 README）；只搜索、看详情、分析本机已有 mod 不需要
 
 ## 可选配置（Steam 创意工坊）
 
@@ -77,6 +78,6 @@
 
 ## 验证状态与已知限制
 
-- 已实测：详情接口免 key、免 key 搜索解析、MCP 会话全链路、RimWorld mod 分析 25 项断言（本机，2026-09）
-- 未实测：带 API key 的搜索路径（无 key 无法测）、steamcmd 真实下载（开发机未装 steamcmd）、steamcommunity 部分网络环境需代理
-- 平台：钩子与脚本以 Windows 为准（PowerShell 5.1 / Node）；macOS/Linux 未适配
+- 已实测（Windows 开发机）：详情接口免 key、免 key 搜索解析、MCP 会话全链路、RimWorld mod 分析、桌面桥五工具全链路（2026-09）
+- macOS/Linux：适配代码已实现并通过 Windows 侧回归测试，**未实机测试**；首次使用遇缺依赖按错误提示安装即可
+- steamcommunity 部分网络环境需代理；带 API key 的搜索路径未实测（无 key）

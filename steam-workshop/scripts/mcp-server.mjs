@@ -94,12 +94,28 @@ function isNonEmptyDir(p) {
   }
 }
 
+function steamRootCandidates(cfg) {
+  const list = [cfg.steamPath];
+  if (process.platform === "win32") {
+    list.push(join(process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)", "Steam"));
+    list.push(join(process.env.ProgramFiles || "C:\\Program Files", "Steam"));
+  } else if (process.platform === "darwin") {
+    list.push(join(homedir(), "Library", "Application Support", "Steam"));
+  } else {
+    list.push(
+      join(homedir(), ".steam", "steam"),
+      join(homedir(), ".local", "share", "Steam"),
+      join(homedir(), "Steam"),
+      join(homedir(), ".var", "app", "com.valvesoftware.Steam", ".steam", "steam")
+    );
+  }
+  return [...new Set(list.filter(Boolean))];
+}
+
 function findSteamLibraries(cfg) {
   const roots = new Set();
   for (const p of cfg.steamLibraries) roots.add(resolve(p));
-  const programFilesX86 = process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)";
-  const candidates = [cfg.steamPath, join(programFilesX86, "Steam"), join(process.env.ProgramFiles || "C:\\Program Files", "Steam")].filter(Boolean);
-  for (const steamRoot of candidates) {
+  for (const steamRoot of steamRootCandidates(cfg)) {
     const vdf = join(steamRoot, "steamapps", "libraryfolders.vdf");
     try {
       if (!existsSync(vdf)) continue;
@@ -117,17 +133,27 @@ function findSteamcmd(cfg) {
   const candidates = [];
   if (cfg.steamcmdPath) candidates.push(cfg.steamcmdPath);
   if (process.env.STEAMCMD_PATH) candidates.push(process.env.STEAMCMD_PATH);
-  candidates.push(join(process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)", "Steam", "steamcmd.exe"));
-  for (const dir of (process.env.PATH || "").split(";")) {
-    if (dir.trim()) candidates.push(join(dir.trim(), "steamcmd.exe"));
-  }
-  return candidates.find((p) => {
-    try {
-      return existsSync(p);
-    } catch {
-      return false;
+  if (process.platform === "win32") {
+    candidates.push(join(process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)", "Steam", "steamcmd.exe"));
+    for (const dir of (process.env.PATH || "").split(";")) {
+      if (dir.trim()) candidates.push(join(dir.trim(), "steamcmd.exe"));
     }
-  }) || null;
+  } else {
+    for (const dir of (process.env.PATH || "").split(":")) {
+      if (dir.trim()) candidates.push(join(dir.trim(), "steamcmd"));
+    }
+    candidates.push(join(homedir(), "steamcmd", "steamcmd.sh"));
+    candidates.push("/usr/local/bin/steamcmd");
+    candidates.push("/opt/homebrew/bin/steamcmd");
+  }
+  for (const p of candidates) {
+    try {
+      if (existsSync(p)) return { exe: p, prefix: p.endsWith(".sh") ? ["bash"] : [] };
+    } catch {
+      // skip unreadable candidate
+    }
+  }
+  return null;
 }
 
 function findLocalMod(appid, id, libraries) {
@@ -139,15 +165,15 @@ function findLocalMod(appid, id, libraries) {
 }
 
 async function steamcmdDownload(appid, id, cfg) {
-  const exe = findSteamcmd(cfg);
-  if (!exe) {
+  const steamcmd = findSteamcmd(cfg);
+  if (!steamcmd) {
     throw new Error(
-      "找不到 steamcmd，无法下载。安装：从 developer.valvesoftware.com/wiki/SteamCMD 下载 steamcmd.zip 解压，然后把 steamcmd.exe 完整路径写进 ~/.zcode/steam-workshop.json 的 steamcmdPath（或装到 Steam 目录）。也可以先在 Steam 里订阅该物品走本地路径。"
+      "找不到 steamcmd，无法下载。安装：developer.valvesoftware.com/wiki/SteamCMD（Windows 下载解压后把 steamcmd.exe 路径写进配置 steamcmdPath；Linux/macOS 见同页，macOS 也可 brew install steamcmd）。也可以先在 Steam 里订阅该物品走本地路径。"
     );
   }
   await mkdir(cfg.downloadRoot, { recursive: true });
-  const args = ["+force_install_dir", cfg.downloadRoot, "+login", "anonymous", "+workshop_download_item", String(appid), String(id), "+quit"];
-  const child = spawn(exe, args, { shell: false });
+  const args = [...steamcmd.prefix, "+force_install_dir", cfg.downloadRoot, "+login", "anonymous", "+workshop_download_item", String(appid), String(id), "+quit"];
+  const child = spawn(steamcmd.exe, args, { shell: false });
   let out = "";
   child.stdout.on("data", (d) => (out += d));
   child.stderr.on("data", (d) => (out += d));
@@ -702,11 +728,12 @@ async function doStatus() {
       ? { check: label, ok: r.value.status === 200, http_status: r.value.status }
       : { check: label, ok: false, error: String(r.reason?.cause?.message || r.reason?.message || r.reason) };
   return jsonOut({
+    platform: process.platform,
     node_version: process.version,
     steam_api_key: { configured: Boolean(cfg.apiKey) },
     config_file: CONFIG_PATH,
     steam_libraries: findSteamLibraries(cfg),
-    steamcmd: steamcmd ? { found: true, path: steamcmd } : { found: false, how_to: "developer.valvesoftware.com/wiki/SteamCMD 下载解压，路径写进配置 steamcmdPath" },
+    steamcmd: steamcmd ? { found: true, path: steamcmd.exe } : { found: false, how_to: "developer.valvesoftware.com/wiki/SteamCMD（Windows 下载解压；Linux/macOS 同页，macOS 可 brew install steamcmd），路径写进配置 steamcmdPath" },
     download_root: cfg.downloadRoot,
     checks: [
       fmt(checks[0], "详情接口 api.steampowered.com（免 key）"),

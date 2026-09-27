@@ -36,6 +36,13 @@ RimWorld 深度解析产出 `integrationPoints`：modDependencies（含 isOption
 - mod 文件来源优先级：`path` 直填 > Steam 库扫描（libraryfolders.vdf + 配置 steamLibraries）> 下载缓存 > steamcmd；`prefer:"download"` 与 `force` 会跳过本地与缓存强制走 steamcmd。
 - mod 内文本按需部分读取（只缓冲上限字节，不整文件进内存）。
 
+## 平台
+
+- MCP 服务器跨平台（Node ≥ 18，建议 24）。
+- Steam 库定位：Windows（Program Files / `libraryfolders.vdf`）、macOS（`~/Library/Application Support/Steam`）、Linux（`~/.steam/steam`、`~/.local/share/Steam`、Flatpak 路径），可用配置 `steamLibraries` 补充。
+- steamcmd 发现：Windows 找 `steamcmd.exe`（PATH / 配置）；Linux/macOS 找 PATH 中的 `steamcmd` 与 `~/steamcmd/steamcmd.sh`（后者自动以 bash 运行）。
+- Windows 全链路实机验证；macOS/Linux 分支代码就绪并通过 Windows 侧回归，**未实机测试**（开发机 Windows）。
+
 ## 验证状态（2026-09-27）
 
 - 免 key 详情、免 key 搜索解析、MCP 帧：实机实测通过（HugsLib 全字段；环世界搜索 20 条）。

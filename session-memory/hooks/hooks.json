@@ -5,15 +5,8 @@
         "hooks": [
           {
             "type": "process",
-            "command": "powershell.exe",
-            "args": [
-              "-NoProfile",
-              "-NonInteractive",
-              "-ExecutionPolicy",
-              "Bypass",
-              "-File",
-              "${CLAUDE_PLUGIN_ROOT}/hooks/load-memory.ps1"
-            ],
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/load-memory.mjs"],
             "timeoutMs": 10000,
             "statusMessage": "Loading session memory"
           }
