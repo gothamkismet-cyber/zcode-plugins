@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "steam-workshop": {
+      "command": "node",
+      "args": ["--use-system-ca", "${CLAUDE_PLUGIN_ROOT}/scripts/mcp-server.mjs"],
+      "env": { "NODE_USE_ENV_PROXY": "1" }
+    }
+  }
+}

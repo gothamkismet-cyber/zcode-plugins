@@ -1,0 +1,9 @@
+{
+  "name": "session-memory",
+  "version": "0.1.0",
+  "description": "Cross-session memory for ZCode: auto-loads global and project memory at session start; ships /remember, /memory commands and a memory-management skill.",
+  "author": { "name": "Administrator" },
+  "skills": "./skills",
+  "commands": "./commands",
+  "hooks": "./hooks/hooks.json"
+}

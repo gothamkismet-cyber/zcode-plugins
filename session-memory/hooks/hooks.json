@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "process",
+            "command": "powershell.exe",
+            "args": [
+              "-NoProfile",
+              "-NonInteractive",
+              "-ExecutionPolicy",
+              "Bypass",
+              "-File",
+              "${CLAUDE_PLUGIN_ROOT}/hooks/load-memory.ps1"
+            ],
+            "timeoutMs": 10000,
+            "statusMessage": "Loading session memory"
+          }
+        ]
+      }
+    ]
+  }
+}

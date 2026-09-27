@@ -1,0 +1,31 @@
+{
+  "name": "dev-zcode-e4d63a53",
+  "plugins": [
+    {
+      "name": "session-memory",
+      "source": "./session-memory",
+      "version": "0.1.0",
+      "description": "Cross-session memory for ZCode: auto-loads global and project memory at session start; ships /remember, /memory commands and a memory-management skill.",
+      "displayName": "Session Memory",
+      "displayName_i18n": {
+        "zh-CN": "会话记忆"
+      },
+      "description_i18n": {
+        "zh-CN": "会话开始自动加载全局与项目记忆；含 /remember 快存、/memory 查看命令与记忆管理技能"
+      }
+    },
+    {
+      "name": "steam-workshop",
+      "source": "./steam-workshop",
+      "version": "0.2.1",
+      "description": "Steam Workshop access for ZCode via MCP: search and inspect items for any game; download via steamcmd; analyze RimWorld mod code (About.xml dependencies, loadFolders, MayRequire, PatchOperations, Harmony patches) for compatibility/integration development.",
+      "displayName": "Steam Workshop",
+      "displayName_i18n": {
+        "zh-CN": "Steam 创意工坊"
+      },
+      "description_i18n": {
+        "zh-CN": "搜索/查阅任意游戏创意工坊 + 下载 mod 并做 RimWorld 深度代码分析（依赖、MayRequire 联动点、Harmony 补丁目标、补丁操作），服务 mod 兼容适配开发"
+      }
+    }
+  ]
+}

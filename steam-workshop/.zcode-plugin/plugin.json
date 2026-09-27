@@ -1,0 +1,8 @@
+{
+  "name": "steam-workshop",
+  "version": "0.2.1",
+  "description": "Steam Workshop access for ZCode via MCP: search and inspect items for any game; download via steamcmd; analyze RimWorld mod code (About.xml dependencies, loadFolders, MayRequire, PatchOperations, Harmony patches) for compatibility/integration development.",
+  "author": { "name": "Administrator" },
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json"
+}
