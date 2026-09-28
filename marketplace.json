@@ -39,6 +39,19 @@
       "description_i18n": {
         "zh-CN": "让 ZCode 触达桌面：剪贴板读写、系统通知、安全打开文件/文件夹/网页、系统信息（Windows/macOS/Linux）"
       }
+    },
+    {
+      "name": "img2prompt",
+      "source": "./img2prompt",
+      "version": "0.1.0",
+      "description": "Image-to-prompt for ZCode: extract embedded generation parameters from AI images (SD/A1111, ComfyUI, NovelAI PNG metadata; JPEG EXIF) and a structured skill that turns any image into refined image-generation prompts (SD tags, natural language, Midjourney, negative prompts, img2img parameter suggestions).",
+      "displayName": "Img2Prompt",
+      "displayName_i18n": {
+        "zh-CN": "图片转生图提示词"
+      },
+      "description_i18n": {
+        "zh-CN": "图片转生图提示词：优先提取 AI 图片内嵌原始参数（SD/ComfyUI/NovelAI、JPEG EXIF）直接复刻，配合八维视觉分析与四种提示词输出格式（SD tag/自然语言/Midjourney/负面提示词）"
+      }
     }
   ]
 }

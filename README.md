@@ -37,6 +37,15 @@
 
 详见 [plugins/desktop-bridge/README.md](plugins/desktop-bridge/README.md)
 
+### 图片转生图提示词（img2prompt）v0.1.0
+
+把任意图片转成高质量生图提示词，核心是"先查嵌入参数，再看图分析"：
+
+- `image_meta` 工具：提取 AI 图片内嵌的**原始生成参数**（SD/A1111/Forge 的 prompt/负面词/Steps/Sampler/CFG/Seed、ComfyUI workflow、NovelAI）和 JPEG EXIF（相机/曝光）——命中即直接复刻，比看图猜准得多
+- `img2prompt` 技能 + `/img2prompt <图片>` 命令：八维视觉分析框架（主体/风格/构图/光影/色彩/氛围/质感/质量词）→ 四种输出（SD tag 式、自然语言、Midjourney 带 `--ar`、负面提示词）+ 图生图重绘幅度与分辨率建议
+
+详见 [plugins/img2prompt/README.md](plugins/img2prompt/README.md)
+
 ## 安装方法
 
 ### 方法一：把本仓库添加为插件市场（推荐）
@@ -44,7 +53,7 @@
 1. 打开 ZCode 的 **插件市场** 页面
 2. 点 **添加 → 添加插件市场**
 3. 输入 `gothamkismet-cyber/zcode-plugins`（或完整地址 `https://github.com/gothamkismet-cyber/zcode-plugins`）
-4. 进 **个人** 页找到三个插件，逐个点 **安装**
+4. 进 **个人** 页找到四个插件，逐个点 **安装**
 5. 会话记忆装完即生效（新会话开始加载）；Steam 创意工坊装完建议重启 ZCode 让 MCP 服务器完成连接
 
 ### 方法二：本地目录市场（离线/开发）

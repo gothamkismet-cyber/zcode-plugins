@@ -1,0 +1,9 @@
+{
+  "name": "img2prompt",
+  "version": "0.1.0",
+  "description": "Image-to-prompt for ZCode: extract embedded generation parameters from AI images (SD/A1111, ComfyUI, NovelAI PNG metadata; JPEG EXIF) and a structured skill that turns any image into refined image-generation prompts (SD tags, natural language, Midjourney, negative prompts, img2img parameter suggestions).",
+  "author": { "name": "Administrator" },
+  "skills": "./skills",
+  "commands": "./commands",
+  "mcpServers": "./.mcp.json"
+}
